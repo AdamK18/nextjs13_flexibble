@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
     logo: '/logo.svg'
   },
   callbacks: {
-    async session({ session }) {
+    async session({ session, token }) {
       const email = session?.user?.email as string;
 
       try {
@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
         const newSession = {
           ...session,
           user: {
+            id: token.sub,
             ...session.user,
             ...data?.user
           }
@@ -44,14 +45,14 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ user }: { user: AdapterUser | User }) {
       try {
-        const { name, email, image } = user;
+        const { id, name, email, image } = user;
 
         // get the user if they exist
         const userExists = (await getUser(email as string)) as { user?: UserProfile };
 
         // if they don't exist, create them
         if (!userExists) {
-          await createUser(name as string, email as string, image as string);
+          await createUser(id as string, name as string, email as string, image as string);
         }
 
         return true;
